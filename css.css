@@ -1,22 +1,35 @@
-.tranform_container{
-	width: 120px;
-	height: 200px;
-	padding: 10px;
-	border: 1px solid #888888;
-	border-radius: 8px;
+#transform_list > *{
+	margin-right: 10px;
 }
 
-.tranform_container *{
+.tranform_container{
+	width: 150px;
+	padding: 10px;
+	/* border: 1px solid #888888; */
+	border-radius: 8px;
+
+	float: left;
+
+	background: #FAFAFA;
+	box-shadow: 0px 2px 5px #888888;
+}
+
+.tranform_container > div, .tranform_container > div > *{
 	width: 100%;
 }
 
-.tranform_container table{
-	border: 1px solid #888888;
-	border-collapse: collapse;
+.tranform_container > div:nth-child(2){
+	border: 2px solid #000000;
+	border-top: none;
+	border-bottom: none;
+	border-radius: 10px;
 }
+
 .tranform_container td{
-	border: 1px dotted #888888;
-	width: 30px;
+	
+	width: 50px;
 	height: 30px;
-	padding: 5px;
+	text-align: center;
+	vertical-align: middle;
+
 }

@@ -154,12 +154,15 @@ class Matrix {
 class Transformation {
 
 	matrix;
+
 	parameters = {};
+	parameter_configurations = {};
+
 	container;
 	matrix_view;
 	editor_view;
+	name = '';
 
-	renderEditor(){console.log('renderEditor() not implemented');}
 	compileMatrix(){console.log('compileMatrix() not implemented');}
 
 	render(){
@@ -170,7 +173,10 @@ class Transformation {
 
 		this.matrix_view = document.createElement('div');
 		this.editor_view = document.createElement('div');
+		let header_view = document.createElement('div');
+		header_view.innerHTML = `<b>${this.name}</b>`;
 
+		this.container.appendChild(header_view);
 		this.container.appendChild(this.matrix_view);
 		this.container.appendChild(this.editor_view);
 
@@ -201,6 +207,21 @@ class Transformation {
 		this.matrix_view.innerHTML = html_matrix;
 	}
 
+	renderEditor(){
+
+		let html = '<table>';
+
+		for(let [key, value] of Object.entries(this.parameter_configurations)){
+			let parameters = Object.entries(value).map(([k,v])=>`${k}="${v}"`).join(' ');
+			let input = `<input type="range" ${parameters} value="${this.parameters[key]}" oninput="changeTransformationParameter(event, this, '${key}')"></input>`;
+			html += `<tr><td>${key}</td><td>${input}</td></tr>`;
+		}
+
+		html += '</table>';
+
+		this.editor_view.innerHTML = html;
+	}
+
 	processEdit(key, value){
 		this.parameters[key] = value;
 		this.compileMatrix();
@@ -211,11 +232,12 @@ class Transformation {
 
 class Rotation extends Transformation{
 
+	name = 'Rotation';
+	
+	parameter_configurations = {
+		r: {min:0, max:360}
+	};
 	parameters = {r: 0};
-
-	renderEditor(){
-		this.editor_view.innerHTML = `<input type="range" min="0" max="360" value="${this.parameters.r}" oninput="changeTransformationParameter(event, this, 'r')"></input>`;
-	}
 
 	compileMatrix(){
 		let r = this.parameters.r * Math.PI / 180;
@@ -224,6 +246,50 @@ class Rotation extends Transformation{
 			[Math.cos(r), -Math.sin(r), 0],
 			[Math.sin(r), Math.cos(r), 0],
 			[0,0,1],
+		]);
+	}
+
+}
+
+class Scale extends Transformation{
+
+	name = 'Scale';
+
+	parameter_configurations = {
+		s: {min:-2, max:5, step:0.02}
+	};
+	parameters = {s: 0};
+
+	compileMatrix(){
+		let s = Math.exp(this.parameters.s);
+
+		this.matrix = new Matrix([
+			[s, 0, 0],
+			[0, s, 0],
+			[0, 0, 1],
+		]);
+	}
+
+}
+
+class ScaleXY extends Transformation{
+
+	name = 'Scale XY';
+
+	parameter_configurations = {
+		sx: {min:-2, max:5, step:0.02},
+		sy: {min:-2, max:5, step:0.02},
+	};
+	parameters = {sx: 0, sy: 0};
+
+	compileMatrix(){
+		let sx = Math.exp(this.parameters.sx);
+		let sy = Math.exp(this.parameters.sy);
+
+		this.matrix = new Matrix([
+			[sx, 0, 0],
+			[0, sy, 0],
+			[0, 0, 1],
 		]);
 	}
 
@@ -256,7 +322,9 @@ function init(){
 
 	canvas_rect = canvas.getBoundingClientRect();
 
+	transformations.push(new ScaleXY());
 	transformations.push(new Rotation());
+	transformations.push(new ScaleXY());
 
 	render();
 }
@@ -284,7 +352,7 @@ function renderCanvas(){
 
 	let matrix = new Matrix(3);
 
-	let s = 100;
+	let s = 50;
 	let scale = new Matrix([[s,0,0],[0,s,0],[0,0,1]]);
 
 	matrix = scale;
@@ -331,13 +399,13 @@ function renderCanvas(){
 			let [rx, ry, rz] = points[[x+1, y, 1]];
 			let [tx, ty, tz] = points[[x, y+1, 1]];
 
-			context.strokeStyle = '#555555';
+			context.strokeStyle = y == 0 ? '#FF8800' : '#555555';
 			context.beginPath();
 			context.moveTo(cx,cy);
 			context.lineTo(rx,ry);
 			context.stroke();
 			
-			context.strokeStyle = '#555555';
+			context.strokeStyle = x == 0 ? '#FF8800' : '#555555';
 			context.beginPath();
 			context.moveTo(cx,cy);
 			context.lineTo(tx,ty);
