@@ -1,6 +1,22 @@
 .tranform_container{
-	width: 100px;
-	height: 100px;
+	width: 120px;
+	height: 200px;
+	padding: 10px;
 	border: 1px solid #888888;
 	border-radius: 8px;
+}
+
+.tranform_container *{
+	width: 100%;
+}
+
+.tranform_container table{
+	border: 1px solid #888888;
+	border-collapse: collapse;
+}
+.tranform_container td{
+	border: 1px dotted #888888;
+	width: 30px;
+	height: 30px;
+	padding: 5px;
 }

@@ -181,7 +181,7 @@ class Transformation {
 	}
 	
 	stingifyMatrix(){
-		return [...Array(3).keys()].map(y => [...Array(3).keys()].map(x => this.matrix._matrix[y][x]));
+		return [...Array(3).keys()].map(y => [...Array(3).keys()].map(x => this.matrix._matrix[y][x].toFixed(2)));
 	}
 
 	renderMatrix(){
@@ -218,7 +218,7 @@ class Rotation extends Transformation{
 	}
 
 	compileMatrix(){
-		let r = this.parameters.r * Math.PI / 180 / 10;
+		let r = this.parameters.r * Math.PI / 180;
 
 		this.matrix = new Matrix([
 			[Math.cos(r), -Math.sin(r), 0],
@@ -284,7 +284,7 @@ function renderCanvas(){
 
 	let matrix = new Matrix(3);
 
-	let s = 10;
+	let s = 100;
 	let scale = new Matrix([[s,0,0],[0,s,0],[0,0,1]]);
 
 	matrix = scale;
@@ -304,26 +304,50 @@ function renderCanvas(){
 	];
 
 	let boundary = {
-		left:   Math.min(...corners.map(v=>v[0])),
-		right:  Math.max(...corners.map(v=>v[0])),
-		top:    Math.max(...corners.map(v=>v[1])),
-		bottom: Math.min(...corners.map(v=>v[1])),
+		left:   Math.floor(Math.min(...corners.map(v=>v[0]))),
+		right:  Math.ceil(Math.max(...corners.map(v=>v[0]))),
+		top:    Math.ceil(Math.max(...corners.map(v=>v[1]))),
+		bottom: Math.floor(Math.min(...corners.map(v=>v[1]))),
 	}
 	
 	context.fillStyle = '#000000';
 	context.fillRect(-canvas_offset_x, -canvas_offset_y, 2*canvas_offset_x, 2*canvas_offset_y);
+
+	let points = {};
+
+	for(let x = boundary.left-1; x < boundary.right+1; x++){
+		for(let y = boundary.bottom-1; y < boundary.top+1; y++){
+			points[[x, y, 1]] = matrix.dot([x, y, 1]);
+		}
+	}
+	
+	context.lineWidth = 1;
+	context.fillStyle = '#AAAAAA';
+
 	for(let x = boundary.left; x < boundary.right; x++){
 		for(let y = boundary.bottom; y < boundary.top; y++){
-			let [tx, ty, tz] = matrix.dot([x, y, 1]);
+			
+			let [cx, cy, cz] = points[[x, y, 1]];
+			let [rx, ry, rz] = points[[x+1, y, 1]];
+			let [tx, ty, tz] = points[[x, y+1, 1]];
 
-			context.fillStyle = '#888888';
+			context.strokeStyle = '#555555';
 			context.beginPath();
-			context.arc(tx,ty,1,0,2*Math.PI);
+			context.moveTo(cx,cy);
+			context.lineTo(rx,ry);
+			context.stroke();
+			
+			context.strokeStyle = '#555555';
+			context.beginPath();
+			context.moveTo(cx,cy);
+			context.lineTo(tx,ty);
+			context.stroke();
+
+			context.beginPath();
+			context.arc(cx,cy,2,0,2*Math.PI);
 			context.fill();
 		}
 	}
-
-
 
 	
 }
