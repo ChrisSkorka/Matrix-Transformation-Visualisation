@@ -7,16 +7,29 @@
 		<link href="css.css" rel="stylesheet" type="text/css">
 	
 	</head>
-	<body 
-		onload="init()">
+	<body onload="init()">
+
 		<canvas 
 			id="canvas"
-			width="800" 
+			width="1000" 
 			height="500" 
 			style="border:1px solid #888888;">
 		</canvas>
-		<div id="transform_list">
-			
+		<div>
+			<div id="transform_list"></div>
+			<div id="output"></div>
+			<div id="transform_add_list">
+				<b>Add Transformation</b>
+				<ul>
+					<li><a onclick="addTransformation(this, Translate)">Translate</a></li>
+					<li><a onclick="addTransformation(this, Scale)">Scale</a></li>
+					<li><a onclick="addTransformation(this, ScaleXY)">Scale XY</a></li>
+					<li><a onclick="addTransformation(this, Skew)">Skew</a></li>
+					<li><a onclick="addTransformation(this, Rotation)">Rotate</a></li>
+					<li><a onclick="addTransformation(this, Custom)">Custom</a></li>
+				</ul>
+			</div>
 		</div>
+
 	</body>
 </html>

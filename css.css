@@ -1,9 +1,21 @@
+*{
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+a{
+	cursor: pointer;
+}
+
+#transform_list, #output, #transform_add_list{
+	display: inline-block;
+}
+
 #transform_list > *{
-	margin-right: 10px;
+	margin-right: 40px;
 }
 
 .tranform_container{
-	width: 150px;
+	width: 200px;
 	padding: 10px;
 	/* border: 1px solid #888888; */
 	border-radius: 8px;
@@ -14,11 +26,22 @@
 	box-shadow: 0px 2px 5px #888888;
 }
 
+.tranform_container:not(:first-child):before{
+	content: "\D7";
+	font-size: 6ex;
+
+	position: relative;
+	left: -44px;
+	top: 80px;
+	float: left;
+	height: 0px;
+}
+
 .tranform_container > div, .tranform_container > div > *{
 	width: 100%;
 }
 
-.tranform_container > div:nth-child(2){
+.tranform_container > div:nth-child(3){
 	border: 2px solid #000000;
 	border-top: none;
 	border-bottom: none;
@@ -32,4 +55,48 @@
 	text-align: center;
 	vertical-align: middle;
 
+}
+
+.tranform_container > div:last-child td:last-child{
+	width: 100%;
+}
+
+.tranform_container a{
+	font-size: 4ex;
+}
+
+.tranform_container input{
+	width: 100%;
+}
+
+#transform_add_list > ul{
+	list-style-type: none;
+	padding-left: 0px;
+}
+
+#transform_add_list > ul > li{
+	margin-bottom: 25px;
+
+}
+#transform_add_list > ul > li > a{
+	background: #FAFAFA;
+	border-radius: 5px;
+	box-shadow: 0px 2px 3px #AAAAAA;
+
+	padding: 10px;
+}
+
+#output > .tranform_container > div:nth-child(1){
+	display: none;
+}
+
+#output > .tranform_container:before{
+	content: "=";
+	font-size: 6ex;
+
+	position: relative;
+	left: -44px;
+	top: 35px;
+	float: left;
+	height: 0px;
 }

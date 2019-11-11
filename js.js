@@ -171,11 +171,18 @@ class Transformation {
 		this.container.classList.add('tranform_container');
 		this.container.transformation = this;
 
-		this.matrix_view = document.createElement('div');
-		this.editor_view = document.createElement('div');
+		let controls_view = document.createElement('div');
+		controls_view.innerHTML = `<table><tr>`+
+			`<td><a onclick="moveTransformationLeft(this)">&#8592;</a></td>`+
+			`<td><a onclick="removeTransformation(this)">&#215;</a></td>`+
+			`<td><a onclick="moveTransformationRight(this)">&#8594;</a></td>`+
+			`</tr></table>`;
 		let header_view = document.createElement('div');
 		header_view.innerHTML = `<b>${this.name}</b>`;
+		this.matrix_view = document.createElement('div');
+		this.editor_view = document.createElement('div');
 
+		this.container.appendChild(controls_view);
 		this.container.appendChild(header_view);
 		this.container.appendChild(this.matrix_view);
 		this.container.appendChild(this.editor_view);
@@ -213,7 +220,7 @@ class Transformation {
 
 		for(let [key, value] of Object.entries(this.parameter_configurations)){
 			let parameters = Object.entries(value).map(([k,v])=>`${k}="${v}"`).join(' ');
-			let input = `<input type="range" ${parameters} value="${this.parameters[key]}" oninput="changeTransformationParameter(event, this, '${key}')"></input>`;
+			let input = `<input type="range" ${parameters} value="${this.parameters[key]}" oninput="changeTransformationParameter(this, '${key}')"></input>`;
 			html += `<tr><td>${key}</td><td>${input}</td></tr>`;
 		}
 
@@ -222,7 +229,7 @@ class Transformation {
 		this.editor_view.innerHTML = html;
 	}
 
-	processEdit(key, value){
+	updateParameter(key, value){
 		this.parameters[key] = value;
 		this.compileMatrix();
 		this.renderMatrix();
@@ -230,12 +237,35 @@ class Transformation {
 
 };
 
+class Translate extends Transformation{
+
+	name = 'Translate';
+
+	parameter_configurations = {
+		dx: {min:-10, max:10, step:0.1},
+		dy: {min:-10, max:10, step:0.1},
+	};
+	parameters = {dx: 0, dy: 0};
+
+	compileMatrix(){
+		let dx = Number(this.parameters.dx);
+		let dy = Number(this.parameters.dy);
+
+		this.matrix = new Matrix([
+			[1, 0, dx],
+			[0, 1, dy],
+			[0, 0, 1],
+		]);
+	}
+
+}
+
 class Rotation extends Transformation{
 
 	name = 'Rotation';
 	
 	parameter_configurations = {
-		r: {min:0, max:360}
+		r: {min:0, max:360, step:2.5}
 	};
 	parameters = {r: 0};
 
@@ -247,6 +277,18 @@ class Rotation extends Transformation{
 			[Math.sin(r), Math.cos(r), 0],
 			[0,0,1],
 		]);
+	}
+	
+	stingifyMatrix(){
+
+		let m = this.matrix._matrix;
+		let r = Number(this.parameters.r).toFixed(0);
+
+		return [
+			[`cos(${r})`,`-sin(${r})`,'0'],
+			[`sin(${r})`,`cos(${r})`,'0'],
+			['0', '0', '1'],
+		];
 	}
 
 }
@@ -295,15 +337,140 @@ class ScaleXY extends Transformation{
 
 }
 
-function changeTransformationParameter(event, element, key){
+class Skew extends Transformation{
+
+	name = 'Skew';
+
+	parameter_configurations = {
+		sx: {min:-5, max:5, step:0.02},
+		sy: {min:-5, max:5, step:0.02},
+	};
+	parameters = {sx: 0, sy: 0};
+
+	compileMatrix(){
+		let sx = Number(this.parameters.sx);
+		let sy = Number(this.parameters.sy);
+
+		this.matrix = new Matrix([
+			[1, sx, 0],
+			[sy, 1, 0],
+			[0, 0, 1],
+		]);
+	}
+
+}
+
+class Custom extends Transformation{
+
+	name = 'Custom';
+
+	parameter_configurations = {
+		m11: {min:-1, max:1, step:0.01},
+		m12: {min:-1, max:1, step:0.01},
+		m13: {min:-1, max:1, step:0.01},
+		m21: {min:-1, max:1, step:0.01},
+		m22: {min:-1, max:1, step:0.01},
+		m23: {min:-1, max:1, step:0.01},
+		m31: {min:-1, max:1, step:0.01},
+		m32: {min:-1, max:1, step:0.01},
+		m33: {min:-1, max:1, step:0.01},
+	};
+	parameters = {
+		m11: 1,
+		m12: 0,
+		m13: 0,
+		m21: 0,
+		m22: 1,
+		m23: 0,
+		m31: 0,
+		m32: 0,
+		m33: 1,
+	};
+
+	compileMatrix(matrix){
+		let m11 = Number(this.parameters.m11);
+		let m12 = Number(this.parameters.m12);
+		let m13 = Number(this.parameters.m13);
+		let m21 = Number(this.parameters.m21);
+		let m22 = Number(this.parameters.m22);
+		let m23 = Number(this.parameters.m23);
+		let m31 = Number(this.parameters.m31);
+		let m32 = Number(this.parameters.m32);
+		let m33 = Number(this.parameters.m33);
+
+		this.matrix = new Matrix([
+			[m11, m12, m13],
+			[m21, m22, m23],
+			[m31, m32, m33],
+		]);
+	}
+
+}
+
+class Output extends Custom{
+	
+	name = 'Output';
+
+	parameter_configurations = {};
+}
+
+function changeTransformationParameter(element, key){
 
 	let transformation_container = element.closest('.tranform_container');
 	let transformation = transformation_container.transformation;
 
-	transformation.processEdit(key, element.value);
+	transformation.updateParameter(key, element.value);
 
+	renderOutput();
 	renderCanvas();
 
+}
+
+function removeTransformation(element){
+
+	let transformation_container = element.closest('.tranform_container');
+	let transformation = transformation_container.transformation;
+
+	transformations.splice(transformations.indexOf(transformation), 1);
+	
+	render();
+}
+
+function moveTransformationLeft(element){
+
+	let transformation_container = element.closest('.tranform_container');
+	let transformation = transformation_container.transformation;
+	let index = transformations.indexOf(transformation);
+	
+	if(0 < index && index <= transformations.length-1){
+		let temp = transformations[index];
+		transformations[index] = transformations[index-1];
+		transformations[index-1] = temp;
+
+		render();
+	}
+
+}
+
+function moveTransformationRight(element){
+
+	let transformation_container = element.closest('.tranform_container');
+	let transformation = transformation_container.transformation;
+	let index = transformations.indexOf(transformation);
+	
+	if(0 <= index && index < transformations.length-1){
+		let temp = transformations[index];
+		transformations[index] = transformations[index+1];
+		transformations[index+1] = temp;
+
+		render();
+	}
+
+}
+
+function addTransformation(element, T){
+	transformations.push(new T());
+	render();
 }
 
 // initialise canvases and begin rendering
@@ -322,15 +489,12 @@ function init(){
 
 	canvas_rect = canvas.getBoundingClientRect();
 
-	transformations.push(new ScaleXY());
-	transformations.push(new Rotation());
-	transformations.push(new ScaleXY());
-
 	render();
 }
 
 function render(){
 	renderEditors();
+	renderOutput();
 	renderCanvas();
 }
 
@@ -346,9 +510,31 @@ function renderEditors(){
 	}
 }
 
+function renderOutput(){
+
+	let matrix = new Matrix(3);
+
+	for(let t of transformations){
+		t.compileMatrix();
+		matrix = matrix.matmul(t.matrix);
+	}
+
+	let output = new Output();
+	output.matrix = matrix;
+
+	let output_matrix = document.getElementById('output');
+
+	if(output_matrix.firstChild)
+		output_matrix.removeChild(output_matrix.firstChild);
+	output_matrix.appendChild(output.render());
+}
+
 // render the canvas by calculating the transformation inverse and choosing a 
 // color for the corresppnding pixel based on the inverse location
 function renderCanvas(){
+	
+	context.fillStyle = '#000000';
+	context.fillRect(-canvas_offset_x, -canvas_offset_y, 2*canvas_offset_x, 2*canvas_offset_y);
 
 	let matrix = new Matrix(3);
 
@@ -357,10 +543,19 @@ function renderCanvas(){
 
 	matrix = scale;
 
+	renderGrid(matrix, '#333333', '#442200', '#222244', '#333333', 1, 2, 2);
+
 	for(let t of transformations){
 		t.compileMatrix();
 		matrix = matrix.matmul(t.matrix);
+		// matrix = t.matrix.matmul(matrix);
 	}
+
+	renderGrid(matrix, '#CCCCCC', '#FF8800', '#8888FF', '#DDDDDD', 1, 4, 3);
+	
+}
+
+function renderGrid(matrix, c_line, c_line_x, c_line_y, c_point, l_width, a_width, p_width){
 
 	let inverse = matrix.inverse();
 
@@ -377,46 +572,41 @@ function renderCanvas(){
 		top:    Math.ceil(Math.max(...corners.map(v=>v[1]))),
 		bottom: Math.floor(Math.min(...corners.map(v=>v[1]))),
 	}
-	
-	context.fillStyle = '#000000';
-	context.fillRect(-canvas_offset_x, -canvas_offset_y, 2*canvas_offset_x, 2*canvas_offset_y);
 
 	let points = {};
 
-	for(let x = boundary.left-1; x < boundary.right+1; x++){
-		for(let y = boundary.bottom-1; y < boundary.top+1; y++){
+	for(let x = boundary.left-1; x <= boundary.right+1; x++){
+		for(let y = boundary.bottom-1; y <= boundary.top+1; y++){
 			points[[x, y, 1]] = matrix.dot([x, y, 1]);
 		}
 	}
 	
-	context.lineWidth = 1;
-	context.fillStyle = '#AAAAAA';
+	context.fillStyle = c_point;
 
-	for(let x = boundary.left; x < boundary.right; x++){
-		for(let y = boundary.bottom; y < boundary.top; y++){
+	for(let x = boundary.left; x <= boundary.right; x++){
+		for(let y = boundary.bottom; y <= boundary.top; y++){
 			
 			let [cx, cy, cz] = points[[x, y, 1]];
 			let [rx, ry, rz] = points[[x+1, y, 1]];
 			let [tx, ty, tz] = points[[x, y+1, 1]];
 
-			context.strokeStyle = y == 0 ? '#FF8800' : '#555555';
+			context.strokeStyle = y == 0 ? c_line_x : c_line;
+			context.lineWidth = y == 0 ? a_width : l_width;
 			context.beginPath();
 			context.moveTo(cx,cy);
 			context.lineTo(rx,ry);
 			context.stroke();
 			
-			context.strokeStyle = x == 0 ? '#FF8800' : '#555555';
+			context.strokeStyle = x == 0 ? c_line_y : c_line;
+			context.lineWidth = x == 0 ? a_width : l_width;
 			context.beginPath();
 			context.moveTo(cx,cy);
 			context.lineTo(tx,ty);
 			context.stroke();
 
 			context.beginPath();
-			context.arc(cx,cy,2,0,2*Math.PI);
+			context.arc(cx, cy, p_width, 0, 2*Math.PI);
 			context.fill();
 		}
 	}
-
-	
 }
-
