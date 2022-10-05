@@ -1,32 +1,75 @@
-*{
+#app * {
 	font-family: Arial, Helvetica, sans-serif;
 }
 
-a{
+#app button {
+	padding: 10px;
+
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	border-radius: 5px;
+	background: #FAFAFA;
+	box-shadow: 0px 2px 3px #AAAAAA;
+}
+
+#app #transform_add_list a {
+	color: blue;
+	text-decoration: underline;
 	cursor: pointer;
 }
 
-#transform_list, #output, #transform_add_list{
-	display: inline-block;
+#app a {
+	cursor: pointer;
 }
 
-#transform_list > *{
+#app {
+	display: grid;
+	grid-template-areas:
+		"c c"
+		"a e";
+	grid-template-columns: 150px auto;
+	/* gap: 16px; */
+	margin: 0px;
+}
+
+#app canvas {
+	grid-area: c;
+}
+
+#app #equation {
+	grid-area: e;
+	display: flex;
+	flex-direction: row;
+	overflow-x: scroll;
+	padding: 8px;
+}
+
+#app #transform_add_list {
+	grid-area: a;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 8px;
+}
+
+#app #transform_list {
+	display: flex;
+	flex-direction: row;
+}
+
+#app #transform_list>* {
 	margin-right: 40px;
 }
 
-.tranform_container{
+#app .transform_container {
 	width: 200px;
 	padding: 10px;
-	/* border: 1px solid #888888; */
 	border-radius: 8px;
 
-	float: left;
-
 	background: #FAFAFA;
-	box-shadow: 0px 2px 5px #888888;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
 }
 
-.tranform_container:not(:first-child):before{
+#app .transform_container:not(:first-child):before {
 	content: "\D7";
 	font-size: 6ex;
 
@@ -37,60 +80,43 @@ a{
 	height: 0px;
 }
 
-.tranform_container > div, .tranform_container > div > *{
+.transform_container>div,
+#app .transform_container>div>* {
 	width: 100%;
 }
 
-.tranform_container > div:nth-child(3){
+#app .transform_container>div:nth-child(3) {
 	border: 2px solid #000000;
 	border-top: none;
 	border-bottom: none;
 	border-radius: 10px;
 }
 
-.tranform_container td{
-	
-	width: 50px;
+#app .transform_container td {
+
 	height: 30px;
 	text-align: center;
 	vertical-align: middle;
 
 }
 
-.tranform_container > div:last-child td:last-child{
+#app .transform_container>div:last-child td:last-child {
 	width: 100%;
 }
 
-.tranform_container a{
+#app .transform_container a {
 	font-size: 4ex;
 }
 
-.tranform_container input{
+#app .transform_container input {
 	width: 100%;
 }
 
-#transform_add_list > ul{
-	list-style-type: none;
-	padding-left: 0px;
-}
-
-#transform_add_list > ul > li{
-	margin-bottom: 25px;
-
-}
-#transform_add_list > ul > li > a{
-	background: #FAFAFA;
-	border-radius: 5px;
-	box-shadow: 0px 2px 3px #AAAAAA;
-
-	padding: 10px;
-}
-
-#output > .tranform_container > div:nth-child(1){
+#app #output>.transform_container>div:nth-child(1) {
 	display: none;
 }
 
-#output > .tranform_container:before{
+#app #output>.transform_container:before {
 	content: "=";
 	font-size: 6ex;
 
